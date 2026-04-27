@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Node structure
+// Define structure
 struct Node {
     int data;
     struct Node *left, *right;
 };
 
-// Create node
+// Create new node
 struct Node* createNode(int data) {
     struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
     newNode->data = data;
@@ -15,34 +15,60 @@ struct Node* createNode(int data) {
     return newNode;
 }
 
-// Build tree using simple queue (array)
+// Queue structure
+struct Queue {
+    int front, rear;
+    int size;
+    struct Node** arr;
+};
+
+// Create queue
+struct Queue* createQueue(int size) {
+    struct Queue* q = (struct Queue*)malloc(sizeof(struct Queue));
+    q->front = q->rear = 0;
+    q->size = size;
+    q->arr = (struct Node**)malloc(size * sizeof(struct Node*));
+    return q;
+}
+
+int isEmpty(struct Queue* q) {
+    return q->front == q->rear;
+}
+
+void enqueue(struct Queue* q, struct Node* node) {
+    q->arr[q->rear++] = node;
+}
+
+struct Node* dequeue(struct Queue* q) {
+    return q->arr[q->front++];
+}
+
+// Build tree from level order
 struct Node* buildTree(int arr[], int n) {
     if (n == 0 || arr[0] == -1)
         return NULL;
 
     struct Node* root = createNode(arr[0]);
 
-    struct Node* queue[n];
-    int front = 0, rear = 0;
-
-    queue[rear++] = root;
+    struct Queue* q = createQueue(n);
+    enqueue(q, root);
 
     int i = 1;
 
     while (i < n) {
-        struct Node* curr = queue[front++];
+        struct Node* curr = dequeue(q);
 
         // Left child
         if (i < n && arr[i] != -1) {
             curr->left = createNode(arr[i]);
-            queue[rear++] = curr->left;
+            enqueue(q, curr->left);
         }
         i++;
 
         // Right child
         if (i < n && arr[i] != -1) {
             curr->right = createNode(arr[i]);
-            queue[rear++] = curr->right;
+            enqueue(q, curr->right);
         }
         i++;
     }
@@ -50,18 +76,17 @@ struct Node* buildTree(int arr[], int n) {
     return root;
 }
 
-// Height function (recursive)
-int height(struct Node* root) {
+// Inorder traversal
+void inorder(struct Node* root) {
     if (root == NULL)
-        return 0;
+        return;
 
-    int left = height(root->left);
-    int right = height(root->right);
-
-    return 1 + (left > right ? left : right);
+    inorder(root->left);
+    printf("%d ", root->data);
+    inorder(root->right);
 }
 
-// Main
+// Main function
 int main() {
     int n;
     scanf("%d", &n);
@@ -73,7 +98,7 @@ int main() {
 
     struct Node* root = buildTree(arr, n);
 
-    printf("%d", height(root));
+    inorder(root);
 
     return 0;
 }
