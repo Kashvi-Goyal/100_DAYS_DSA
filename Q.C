@@ -1,104 +1,99 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Define structure
+// Node structure
 struct Node {
     int data;
-    struct Node *left, *right;
+    struct Node* next;
 };
 
-// Create new node
+// Create node
 struct Node* createNode(int data) {
     struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
     newNode->data = data;
-    newNode->left = newNode->right = NULL;
+    newNode->next = NULL;
     return newNode;
 }
 
-// Queue structure
-struct Queue {
-    int front, rear;
-    int size;
-    struct Node** arr;
-};
+// Append at end
+struct Node* append(struct Node* head, int data) {
+    struct Node* newNode = createNode(data);
+    if (head == NULL) return newNode;
 
-// Create queue
-struct Queue* createQueue(int size) {
-    struct Queue* q = (struct Queue*)malloc(sizeof(struct Queue));
-    q->front = q->rear = 0;
-    q->size = size;
-    q->arr = (struct Node**)malloc(size * sizeof(struct Node*));
-    return q;
+    struct Node* temp = head;
+    while (temp->next != NULL)
+        temp = temp->next;
+
+    temp->next = newNode;
+    return head;
 }
 
-int isEmpty(struct Queue* q) {
-    return q->front == q->rear;
+// Get length
+int getLength(struct Node* head) {
+    int len = 0;
+    while (head) {
+        len++;
+        head = head->next;
+    }
+    return len;
 }
 
-void enqueue(struct Queue* q, struct Node* node) {
-    q->arr[q->rear++] = node;
-}
+// Find intersection node
+struct Node* findIntersection(struct Node* h1, struct Node* h2) {
+    int len1 = getLength(h1);
+    int len2 = getLength(h2);
 
-struct Node* dequeue(struct Queue* q) {
-    return q->arr[q->front++];
-}
+    int diff = abs(len1 - len2);
 
-// Build tree from level order
-struct Node* buildTree(int arr[], int n) {
-    if (n == 0 || arr[0] == -1)
-        return NULL;
-
-    struct Node* root = createNode(arr[0]);
-
-    struct Queue* q = createQueue(n);
-    enqueue(q, root);
-
-    int i = 1;
-
-    while (i < n) {
-        struct Node* curr = dequeue(q);
-
-        // Left child
-        if (i < n && arr[i] != -1) {
-            curr->left = createNode(arr[i]);
-            enqueue(q, curr->left);
-        }
-        i++;
-
-        // Right child
-        if (i < n && arr[i] != -1) {
-            curr->right = createNode(arr[i]);
-            enqueue(q, curr->right);
-        }
-        i++;
+    // Move pointer of longer list
+    if (len1 > len2) {
+        for (int i = 0; i < diff; i++)
+            h1 = h1->next;
+    } else {
+        for (int i = 0; i < diff; i++)
+            h2 = h2->next;
     }
 
-    return root;
+    // Traverse together
+    while (h1 && h2) {
+        if (h1 == h2)
+            return h1;
+        h1 = h1->next;
+        h2 = h2->next;
+    }
+
+    return NULL;
 }
 
-// Inorder traversal
-void inorder(struct Node* root) {
-    if (root == NULL)
-        return;
-
-    inorder(root->left);
-    printf("%d ", root->data);
-    inorder(root->right);
-}
-
-// Main function
 int main() {
-    int n;
-    scanf("%d", &n);
+    int n, m, x;
+    struct Node *list1 = NULL, *list2 = NULL;
 
-    int arr[n];
+    // First list
+    scanf("%d", &n);
     for (int i = 0; i < n; i++) {
-        scanf("%d", &arr[i]);
+        scanf("%d", &x);
+        list1 = append(list1, x);
     }
 
-    struct Node* root = buildTree(arr, n);
+    // Second list
+    scanf("%d", &m);
+    for (int i = 0; i < m; i++) {
+        scanf("%d", &x);
+        list2 = append(list2, x);
+    }
 
-    inorder(root);
+    // NOTE:
+    // No intersection is formed automatically from input.
+    // For testing, you can manually connect:
+    // Example: list2's last node -> some node in list1
+
+    struct Node* inter = findIntersection(list1, list2);
+
+    if (inter)
+        printf("%d", inter->data);
+    else
+        printf("No Intersection");
 
     return 0;
 }
